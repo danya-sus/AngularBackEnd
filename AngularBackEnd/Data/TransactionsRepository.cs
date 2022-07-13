@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using Newtonsoft.Json.Linq;
 
 namespace AngularBackEnd.Data
 {
@@ -47,6 +48,11 @@ namespace AngularBackEnd.Data
             var result = _mapper.Map<IEnumerable<AllData>>(
                 await _context.data_all.FromSqlRaw(sqlRequest, docNumber).ToListAsync());
 
+            foreach (var item in result)
+            {
+                item.Validate();
+            }
+
             if (result.Count() > 0)
             {
                 return result;
@@ -60,6 +66,11 @@ namespace AngularBackEnd.Data
 
             var result = _mapper.Map<IEnumerable<AllData>>(
                 await _context.data_all.FromSqlRaw(sqlRequest, ticketNumber).ToListAsync());
+
+            foreach (var item in result)
+            {
+                item.Validate();
+            }
 
             if (result.Count() > 0)
             {

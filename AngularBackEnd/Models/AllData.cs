@@ -8,13 +8,13 @@ namespace AngularBackEnd.Models
 
         public string Type { get; set; }
 
-        public DateTimeOffset Time { get; set; }
+        public string Time { get; set; }
 
         public string Place { get; set; }
 
         public string Sender { get; set; }
 
-        public DateTimeOffset transactionTime { get; set; }
+        public DateTimeOffset TransactionTime { get; set; }
 
         public string ValidationStatus { get; set; }
 
@@ -64,11 +64,11 @@ namespace AngularBackEnd.Models
 
         public string DepartPlace { get; set; }
 
-        public DateTimeOffset DepartDatetime { get; set; }
+        public string DepartDatetime { get; set; }
 
         public string ArrivePlace { get; set; }
 
-        public DateTimeOffset ArriveDatetime { get; set; }
+        public string ArriveDatetime { get; set; }
 
         public string PnrID { get; set; }
 
@@ -99,5 +99,17 @@ namespace AngularBackEnd.Models
         public string FareCode { get; set; }
 
         public int FarePrice { get; set; }
+
+        public void Validate()
+        {
+            var dateTime = DateTimeOffset.Parse(this.Time);
+            this.Time = dateTime.ToString();
+
+            dateTime = DateTime.Parse(this.DepartDatetime);
+            this.DepartDatetime = dateTime.ToString();
+
+            dateTime = DateTime.Parse(this.ArriveDatetime);
+            this.ArriveDatetime = dateTime.ToString();
+        }
     }
 }
