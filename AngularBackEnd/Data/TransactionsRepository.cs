@@ -58,7 +58,7 @@ namespace AngularBackEnd.Data
                 return result;
             }
             throw new DbUpdateException("Data is null");
-            }
+        }
 
         public async Task<IEnumerable<AllData>> GetByTicketNumAsync(string ticketNumber)
         {

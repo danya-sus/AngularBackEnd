@@ -55,6 +55,13 @@ namespace AngularBackEnd.Middleware
                     httpContext.Response.ContentType = "application/json";
                     await httpContext.Response.WriteAsync("Ошибка сервера, попробуйте повторить запрос...");
                 }
+
+                if (ex is TimeoutException)
+                {
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
+                    httpContext.Response.ContentType = "application/json";
+                    await httpContext.Response.WriteAsync("Превышен лимит ожидания запроса...");
+                }
             }
         }
     }

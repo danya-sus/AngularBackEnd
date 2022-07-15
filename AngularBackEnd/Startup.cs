@@ -35,7 +35,6 @@ namespace AngularBackEnd
             });
 
             services.AddApiVersioning();
-
             services.AddControllers(options =>
             {
                 options.OutputFormatters.Add(new CsvOutputFormatter(csvFormatterOptions));

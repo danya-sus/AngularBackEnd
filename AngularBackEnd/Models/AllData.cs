@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace AngularBackEnd.Models
 {
@@ -28,8 +29,6 @@ namespace AngularBackEnd.Models
 
         public string Birthdate { get; set; }
 
-        public int GenderID { get; set; }
-
         public long PassengerDocumentID { get; set; }
 
         public string PassengerDocumentType { get; set; }
@@ -39,8 +38,6 @@ namespace AngularBackEnd.Models
         public string PassengerDocumentDisabledNumber { get; set; }
 
         public string PassengerDocumentLargeNumber { get; set; }
-
-        public int PassengerTypeID { get; set; }
 
         public string PassengerTypeName { get; set; }
 
@@ -52,13 +49,9 @@ namespace AngularBackEnd.Models
 
         public bool IsQuota { get; set; }
 
-        public long TicketID { get; set; }
-
         public string TicketNumber { get; set; }
 
         public int TicketType { get; set; }
-
-        public long AirlineRouteID { get; set; }
 
         public string AirlineCode { get; set; }
 
@@ -74,23 +67,11 @@ namespace AngularBackEnd.Models
 
         public string OperatingAirlineCode { get; set; }
 
-        public string CityFromCode { get; set; }
-
         public string CityFromName { get; set; }
-
-        public string AirportFromIcaoCode { get; set; }
-
-        public string AirportFromRfCode { get; set; }
 
         public string AirportFromName { get; set; }
 
-        public string CityToCode { get; set; }
-
         public string CityToName { get; set; }
-
-        public string AirportToIcaoCode { get; set; }
-
-        public string AirportToRfCode { get; set; }
 
         public string AirportToName { get; set; }
 
@@ -105,10 +86,10 @@ namespace AngularBackEnd.Models
             var dateTime = DateTimeOffset.Parse(this.Time);
             this.Time = dateTime.ToString();
 
-            dateTime = DateTime.Parse(this.DepartDatetime);
+            dateTime = DateTimeOffset.Parse(this.DepartDatetime);
             this.DepartDatetime = dateTime.ToString();
 
-            dateTime = DateTime.Parse(this.ArriveDatetime);
+            dateTime = DateTimeOffset.Parse(this.ArriveDatetime);
             this.ArriveDatetime = dateTime.ToString();
         }
     }

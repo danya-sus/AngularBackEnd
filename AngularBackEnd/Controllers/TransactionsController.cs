@@ -1,11 +1,19 @@
 ﻿using AngularBackEnd.Data;
+using AngularBackEnd.Formatters;
 using AngularBackEnd.Models;
 using AngularBackEnd.Models.Validation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace AngularBackEnd.Controllers
 {
@@ -17,12 +25,14 @@ namespace AngularBackEnd.Controllers
         private readonly ITransactionsRepository _repository;
         private readonly ILogger _logger;
         private readonly IValidatorForAirline _validator;
+        private readonly IConfiguration _configuration;
 
-        public TransactionsController(ITransactionsRepository repository, ILogger<TransactionsController> logger, IValidatorForAirline validator)
+        public TransactionsController(ITransactionsRepository repository, ILogger<TransactionsController> logger, IValidatorForAirline validator, IConfiguration configuration)
         {
             this._repository = repository;
             this._logger = logger;
             this._validator = validator;
+            this._configuration = configuration;
         }
 
         [Route("airlines")]
@@ -38,61 +48,96 @@ namespace AngularBackEnd.Controllers
         {
             if (dto.DocNumber == null) return BadRequest();
 
-            return Ok(await _repository.GetByDocNumAsync(dto.DocNumber));
+            var result = _repository.GetByDocNumAsync(dto.DocNumber);
+
+            if (await Task.WhenAny(result, Task.Delay(60000)) == result)
+            {
+                return Ok(await result);
+            }
+
+            throw new TimeoutException();
         }
 
         [Route("by_ticket_number")]
         [HttpPost]
         public async Task<IActionResult> GetByTicketNumberAsync([FromBody] InputTicketDto dto)
         {
-            if (dto.IsChecked)
+            Task<IEnumerable<AllData>> result;
+
+            if (dto.IsChecked) result = _repository.GetByTicketNumAsync(dto.TicketNumber);
+            else result = _repository.GetByTicketNumAllAsync(dto.TicketNumber);
+
+            if (await Task.WhenAny(result, Task.Delay(60000)) == result)
             {
-                return Ok(await _repository.GetByTicketNumAsync(dto.TicketNumber));
+                return Ok(await result);
             }
-            return Ok(await _repository.GetByTicketNumAllAsync(dto.TicketNumber));
+
+            throw new TimeoutException();
         }
 
         [Route("get_doc_file")]
         [HttpPost]
         public async Task<IActionResult> GetDocCsvFileAsync([FromBody] InputDocFileDto dto)
         {
-            var models = await _repository.GetByDocNumAsync(dto.DocNumber);
+            var result = _repository.GetByDocNumAsync(dto.DocNumber);
 
-            _validator.Validation(models, dto.AirlineCode);
-
-            var cd = new ContentDisposition()
+            if (await Task.WhenAny(result, Task.Delay(60000)) == result)
             {
-                FileName = $"Report{dto.AirlineCode}.csv",
-                Inline = false
-            };
+                var models = await result;
+                _validator.Validation(models, dto.AirlineCode);
 
-            Response.Headers.Add("Content-Disposition", cd.ToString());
-            Response.Headers.Add("Content-Type", "text/csv");
-            
-            return Ok(models);
+                ExcelPackage excel = new ExcelPackage();
+                var workSheet = excel.Workbook.Worksheets.Add("Report1");
+                var streamReader = new StreamReader(_configuration.GetSection("Formatters")["RussianFormatter"]);
+                var formatter = streamReader.ReadToEnd();
+                workSheet.Cells[1, 1].LoadFromArrays(new[] { formatter.Split(",") });
+                workSheet.Cells[2, 1].LoadFromCollection(models, false);
+
+                var memoryStream = new MemoryStream();
+                await excel.SaveAsAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                Response.Headers.Add("content-disposition", $"attachment; filename={dto.AirlineCode}Report.xlsx");
+
+                return Ok(memoryStream);
+            }
+
+            throw new TimeoutException();
         }
 
         [Route("get_ticket_file")]
         [HttpPost]
         public async Task<IActionResult> GetTicketCsvFileAsync([FromBody] InputTicketFileDto dto)
         {
-            IEnumerable<AllData> models;
+            Task<IEnumerable<AllData>> result;
 
-            if (dto.IsChecked) models = await _repository.GetByTicketNumAsync(dto.TicketNumber);
-            else models = await _repository.GetByTicketNumAllAsync(dto.TicketNumber);
+            if (dto.IsChecked) result = _repository.GetByTicketNumAsync(dto.TicketNumber);
+            else result = _repository.GetByTicketNumAllAsync(dto.TicketNumber);
 
-            _validator.Validation(models, dto.AirlineCode);
-
-            var cd = new ContentDisposition()
+            if (await Task.WhenAny(result, Task.Delay(60000)) == result)
             {
-                FileName = $"Report{dto.AirlineCode}.csv",
-                Inline = false
-            };
+                var models = await result;
+                _validator.Validation(models, dto.AirlineCode);
 
-            Response.Headers.Add("Content-Disposition", cd.ToString());
-            Response.Headers.Add("Content-Type", "text/csv");
+                ExcelPackage excel = new ExcelPackage();
+                var workSheet = excel.Workbook.Worksheets.Add("Report1");
+                var streamReader = new StreamReader(_configuration.GetSection("Formatters")["RussianFormatter"]);
+                var formatter = streamReader.ReadToEnd();
+                workSheet.Cells[1, 1].LoadFromArrays(new[] { formatter.Split(",") });
+                workSheet.Cells[2, 1].LoadFromCollection(models, false);
 
-            return Ok(models);
+                var memoryStream = new MemoryStream();
+                await excel.SaveAsAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                Response.Headers.Add("content-disposition", $"attachment; filename={dto.AirlineCode}Report.xlsx");
+
+                return Ok(memoryStream);
+            }
+
+            throw new TimeoutException();
         }
     }
 }
