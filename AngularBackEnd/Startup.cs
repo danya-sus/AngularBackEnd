@@ -12,6 +12,7 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using System.Linq;
 using AngularBackEnd.Models.Validation;
+using AngularBackEnd.Services;
 
 namespace AngularBackEnd
 {
@@ -42,6 +43,7 @@ namespace AngularBackEnd
             });
 
             services.AddScoped<IValidatorForAirline, ValidatorForAirline>();
+            services.AddScoped<ITransactionsService, TransactionsService>();
             services.AddScoped<ITransactionsRepository, TransactionsRepository>();
             services.AddAutoMapper(typeof(Startup));
             services.AddRouting(options => options.LowercaseUrls = true);
