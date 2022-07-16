@@ -20,11 +20,12 @@ namespace AngularBackEnd.Middleware
 
         public async Task InvokeAsync(HttpContext httpContext, ILogger<ExceptionMiddleware> logger)
         {
-            logger.LogInformation($"{httpContext.Request.Path}");
+            logger.LogInformation($"TIME: {DateTime.Now}:{DateTime.Now.Millisecond}; REQUEST: {httpContext.Request.Path}");
 
             try
             {
                 await _next(httpContext);
+                logger.LogInformation($"TIME: {DateTime.Now}:{DateTime.Now.Millisecond}; REQUEST: {httpContext.Response.StatusCode}");
             }
             catch (Exception ex)
             {
@@ -62,6 +63,8 @@ namespace AngularBackEnd.Middleware
                     httpContext.Response.ContentType = "application/json";
                     await httpContext.Response.WriteAsync("Превышен лимит ожидания запроса...");
                 }
+
+                logger.LogError($"TIME: {DateTime.Now}:{DateTime.Now.Millisecond}; RESPONSE: {httpContext.Response.StatusCode}");
             }
         }
     }
