@@ -35,6 +35,18 @@ namespace AngularBackEnd
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "text/csv" });
             });
 
+            services.AddCors(
+                options =>
+                {
+                    options.AddPolicy("AllowAll",
+                        builder =>
+                        {
+                            builder.AllowAnyOrigin()
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                        });
+                });
+
             services.AddApiVersioning();
             services.AddControllers(options =>
             {
@@ -74,6 +86,8 @@ namespace AngularBackEnd
             });
 
             app.UseRouting();
+
+            app.UseCors("AllowAll");
 
             app.UseMiddleware<ExceptionMiddleware>();
 

@@ -64,7 +64,7 @@ namespace AngularBackEnd.Middleware
                     await httpContext.Response.WriteAsync("Превышен лимит ожидания запроса...");
                 }
 
-                logger.LogError($"TIME: {DateTime.Now}:{DateTime.Now.Millisecond}; RESPONSE: {httpContext.Response.StatusCode}");
+                logger.LogError($"TIME: {DateTime.Now}:{DateTime.Now.Millisecond}; RESPONSE: {ex.Message}");
             }
         }
     }
